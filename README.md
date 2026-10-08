@@ -24,8 +24,8 @@ The brief was to test that hypothesis and advise whether the discount should go 
   (€0.1419 vs €0.1424 per kWh). Price *level* does not separate the two groups.
 - A blanket 20% discount would cost **€553k** to protect **€324k** of at-risk margin — a loss of
   roughly **€229k**, even under the generous assumption that it retains *every* churner.
-- A model-targeted alternative is viable but modest: targeting the ~640 highest-risk customers
-  (4% of the base) returns a mean of **~€33k per year** across repeated splits, against a book worth
+- A model-targeted alternative is viable but modest: targeting the highest-risk customers
+  (roughly 640 to 660, about 4.5% of the base, depending on the split) returns a mean of **~€33k per year** across repeated splits, against a book worth
   €2.76m. Recommended as a six-month pilot rather than a rollout.
 
 The one-slide summary prepared for the client is in [`reports/executive_summary.pdf`](reports/executive_summary.pdf).
@@ -48,7 +48,9 @@ The one-slide summary prepared for the client is in [`reports/executive_summary.
 └── requirements.txt
 ```
 
-Run the notebooks in numerical order; each writes the inputs the next one expects.
+Run the notebooks in numerical order. Notebook 02 writes my engineered features to `outputs/`;
+notebook 03 trains on the programme-supplied feature file in `data/provided/`; notebook 04
+compares the two feature sets.
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
@@ -115,7 +117,9 @@ at exactly 1.00 among the programme-supplied variance columns, caused by combini
 
 [`notebooks/03_modelling.ipynb`](notebooks/03_modelling.ipynb)
 
-A random forest (1,000 trees) on a 75/25 random train/test split (`random_state=42`).
+A random forest (1,000 trees) on a 75/25 random train/test split (`random_state=42`), trained on
+the **programme-supplied feature file (61 features)**. The feature set built in section 2 (49
+features) is not used for this model; it is compared against the supplied one in section 4.
 
 | Metric | Value |
 |---|---|
@@ -171,6 +175,10 @@ split of seven where the ranking reverses.
 - **The value estimate is unstable.** Across seven splits the targeted programme returns between
   €17k and €92k, with a mean of €33k. The €92k figure comes from a single split and would overstate
   the opportunity threefold; the mean is quoted instead, with the range disclosed.
+- **The threshold was tuned on the same split it is reported on.** The 0.30 cut-off is the
+  profit-maximising value on the seed-42 test set, and the table above reports value on that same
+  set, so the €4,208 is optimistic. The seven-split figures reuse 0.30 rather than re-tuning it, but
+  0.30 was originally chosen on seed 42 (the split that returns the €92k outlier).
 - **Two unvalidated assumptions.** The €112 margin figure is the median of `net_margin`, which the
   data dictionary does not confirm is annual. More importantly, the calculation assumes every
   discounted churner is retained — almost certainly optimistic, and the reason the recommendation is
